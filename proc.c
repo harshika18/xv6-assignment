@@ -181,7 +181,8 @@ growproc(int n)
   switchuvm(curproc);
   return 0;
 }
-
+//int arr_priority[]={50,45,30,25,20,15,14,13,12,11,10};
+//int id_priority=0;
 // Create a new process copying p as the parent.
 // Sets up stack to return as if from system call.
 // Caller must set state of returned proc to RUNNABLE.
@@ -223,7 +224,7 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
-
+  
   release(&ptable.lock);
 
   return pid;
@@ -418,72 +419,46 @@ scheduler(void)
     	}
     }        
     #endif
- 	#ifdef PSB
- 	//cprintf("psb");
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    {
+ 	#ifdef PBS
+ 		struct proc *p1;
+        struct proc *highp = 0;
+       // acquire(&ptable.lock);
+        for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+        {
+          if(p->state != RUNNABLE)
+          {
+            continue;
+          }
 
-            // cprintf("psb");
-      		struct proc *highP = 0;
-      		struct proc *p1;
-      		if(p->state != RUNNABLE)
-                continue;
-              // Choose the process with highest priority (among RUNNABLEs)
-      		highP = p;
-      		// choose one with highest priority
-      		for (p1 = ptable.proc; p1 < &ptable.proc[NPROC]; ++p1) {
-        		if(p1->state != RUNNABLE)
-        	  		continue;
-        		if (highP->priority > p1->priority)
-          			highP = p1;
-      		}
-      		if(highP != 0)
-      		p = highP;
-      	// #else
-        // #ifdef FCFS
+         highp = p;
+          for(p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++)
+          {
+            if(p1->state != RUNNABLE)
+            {
+              continue;
+            }
+            if(p1->state == RUNNABLE && highp->priority > p1->priority)
+            {
+             highp = p1;
+            }
+          }
+          if(highp!=0)
+          {
+	          p =highp;
+    	      c->proc = p;
+        	  switchuvm(p);
+	          p->state = RUNNING;
+    	      //cprintf("Process %s with pid %d running\n", p->name, p->pid);
 
-        //     struct proc *minP = 0;
+        	  swtch(&(c->scheduler), p->context);
+	          switchkvm();
 
-        //     if(p->state != RUNNABLE)
-        //       continue;
-
-        //     // ignore init and sh processes from FCFS
-        //     if(p->pid > 1)
-        //     {
-        //       if (minP != 0){
-        //         // here I find the process with the lowest creation time (the first one that was created)
-        //         if(p->stime < minP->stime)
-        //           minP = p;
-        //       }
-        //       else
-        //           minP = p;
-        //     }
-        //     cprintf("\nstart time - %d\n",minP->stime);
-        //     // If I found the process which I created first and it is runnable I run it
-        //     //(in the real FCFS I should not check if it is runnable, but for testing purposes I have to make this control, otherwise every time I launch
-        //     // a process which does I/0 operation (every simple command) everything will be blocked
-        //     if(minP != 0 && minP->state == RUNNABLE)
-        //         p = minP;
-        // #endif
-        // #endif
-            
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-   		if(p != 0)
-    	{
-    	  c->proc = p;
-    	  switchuvm(p);
-    	  p->state = RUNNING;
-
-    	  swtch(&(c->scheduler), p->context);
-    	  switchkvm();
-
-    	  // Process is done running for now.
-    	  // It should have changed its p->state before coming back.
-    	  c->proc = 0;
-    	}
-    }
+          //Process is done running for now.
+          //It should have changed its p->state before coming back.
+    	      c->proc = 0;
+      	  }
+        }
+   		
     	#endif
     	#ifdef FCFS
     	//cprintf("fcfs");
@@ -746,4 +721,22 @@ set_priority(int pid, int priority)
   release(&ptable.lock);
 
   return prev;
+}
+
+int check_priority(int x)
+{
+	acquire(&ptable.lock);
+  for(struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->state == RUNNABLE )
+    {
+      if(p->priority<=x)
+      {
+        release(&ptable.lock);
+        return 1;
+      }
+    }
+  }
+  release(&ptable.lock);
+  return 0;	
 }

@@ -51,9 +51,6 @@ trap(struct trapframe *tf)
     if(cpuid() == 0){
       acquire(&tickslock);
       ticks++;
-      wakeup(&ticks);
-      release(&tickslock);
-
       // Update time fields
       if(myproc())
       {
@@ -62,6 +59,10 @@ trap(struct trapframe *tf)
         else if(myproc()->state == SLEEPING)
           myproc()->iotime++;
       }
+      wakeup(&ticks);
+      release(&tickslock);
+
+      
     }
     lapiceoi();
     break;
@@ -111,9 +112,14 @@ trap(struct trapframe *tf)
 
   // Force process to give up CPU on clock tick.
   // If interrupts were on while locks held, would need to check nlock.
+   #ifdef PBS
   if(myproc() && myproc()->state == RUNNING &&
      tf->trapno == T_IRQ0+IRQ_TIMER)
-    yield();
+   {
+ //   if(check_priority(myproc()->priority))
+      yield();
+   }
+    #endif
 
   // Check if the process has been killed since we yielded
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)

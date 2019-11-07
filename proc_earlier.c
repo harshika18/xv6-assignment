@@ -395,13 +395,35 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    #ifdef DEFAULT
+    //cprintf("Default\n");
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     {
-      	#ifdef DEFAULT
+
+      		// cprintf("Default\n");
         	if(p->state != RUNNABLE)
             	continue;
-      	#else
- 	  	#ifdef PSB
+       		if(p != 0)
+    	{
+    	  c->proc = p;
+    	  switchuvm(p);
+    	  p->state = RUNNING;
+
+    	  swtch(&(c->scheduler), p->context);
+    	  switchkvm();
+
+    	  // Process is done running for now.
+    	  // It should have changed its p->state before coming back.
+    	  c->proc = 0;
+    	}
+    }        
+    #endif
+ 	#ifdef PSB
+ 	//cprintf("psb");
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+
+            // cprintf("psb");
       		struct proc *highP = 0;
       		struct proc *p1;
       		if(p->state != RUNNABLE)
@@ -417,34 +439,34 @@ scheduler(void)
       		}
       		if(highP != 0)
       		p = highP;
-      	#else
-        #ifdef FCFS
+      	// #else
+        // #ifdef FCFS
 
-            struct proc *minP = 0;
+        //     struct proc *minP = 0;
 
-            if(p->state != RUNNABLE)
-              continue;
+        //     if(p->state != RUNNABLE)
+        //       continue;
 
-            // ignore init and sh processes from FCFS
-            if(p->pid > 1)
-            {
-              if (minP != 0){
-                // here I find the process with the lowest creation time (the first one that was created)
-                if(p->stime < minP->stime)
-                  minP = p;
-              }
-              else
-                  minP = p;
-            }
-
-            // If I found the process which I created first and it is runnable I run it
-            //(in the real FCFS I should not check if it is runnable, but for testing purposes I have to make this control, otherwise every time I launch
-            // a process which does I/0 operation (every simple command) everything will be blocked
-            if(minP != 0 && minP->state == RUNNABLE)
-                p = minP;
-        #endif
-        #endif
-        #endif
+        //     // ignore init and sh processes from FCFS
+        //     if(p->pid > 1)
+        //     {
+        //       if (minP != 0){
+        //         // here I find the process with the lowest creation time (the first one that was created)
+        //         if(p->stime < minP->stime)
+        //           minP = p;
+        //       }
+        //       else
+        //           minP = p;
+        //     }
+        //     cprintf("\nstart time - %d\n",minP->stime);
+        //     // If I found the process which I created first and it is runnable I run it
+        //     //(in the real FCFS I should not check if it is runnable, but for testing purposes I have to make this control, otherwise every time I launch
+        //     // a process which does I/0 operation (every simple command) everything will be blocked
+        //     if(minP != 0 && minP->state == RUNNABLE)
+        //         p = minP;
+        // #endif
+        // #endif
+            
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -461,9 +483,41 @@ scheduler(void)
     	  // It should have changed its p->state before coming back.
     	  c->proc = 0;
     	}
-	}
+    }
+    	#endif
+    	#ifdef FCFS
+    	//cprintf("fcfs");
+ 		struct proc *q = 0;
+
+    	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    	{
+    		if(p->state != RUNNABLE)
+    			continue;
+    		if(q == 0)
+    			q = p;
+    		else if(q->stime < p->stime)
+    			q = p; 
+    	}
+    	if(q!=0)
+    	{
+    	  p = q;
+    	  c->proc = p;
+    	  switchuvm(p);
+    	  p->state = RUNNING;
+
+    	  swtch(&(c->scheduler), p->context);
+    	  switchkvm();
+
+    	  // Process is done running for now.
+    	  // It should have changed its p->state before coming back.
+    	  c->proc = 0;
+    	}
+    	#endif
+
     release(&ptable.lock);
-  }
+	}
+
+  
 }
 
 // Enter scheduler.  Must hold only ptable.lock

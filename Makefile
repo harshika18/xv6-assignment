@@ -187,8 +187,11 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_test\
+	_ps\
+	_pbstest\
 	_fcfs\
 	_time\
+	_pbs\
 	_set_priority\
 	_zombie\
 
@@ -262,7 +265,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
-	ln.c ls.c test.c mkdir.c rm.c stressfs.c usertests.c wc.c time.c fcfs.c set_priority.c zombie.c\
+	ln.c ls.c pbstest.c test.c ps.c pbs.c mkdir.c rm.c stressfs.c usertests.c wc.c time.c fcfs.c set_priority.c zombie.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
