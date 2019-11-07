@@ -740,3 +740,27 @@ int check_priority(int x)
   release(&ptable.lock);
   return 0;	
 }
+
+int getpinfo(int id, struct proc_stat *process)
+{
+  struct proc *p;
+
+  sti();
+
+  //int flag = 0;
+  int ppid=id;
+    acquire(&ptable.lock);
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+     // cprintf("Process Id %d\n",p->pid);
+      if (ppid == p->pid)
+      {
+        cprintf("Process pid %d\n",p->pid);
+        cprintf("Running Time %d\n",p->rtime);
+        //flag = 1;
+        break;
+      }
+    }
+    release(&ptable.lock);
+  return 0;
+}

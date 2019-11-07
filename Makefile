@@ -188,15 +188,16 @@ UPROGS=\
 	_wc\
 	_test\
 	_ps\
-	_pbstest\
 	_fcfs\
 	_time\
 	_pbs\
+	_roundtest\
 	_set_priority\
 	_zombie\
+	_pinfo\
 
-fs.img: mkfs README $(UPROGS)
-	./mkfs fs.img README $(UPROGS)
+fs.img: mkfs readme.md $(UPROGS)
+	./mkfs fs.img readme.md $(UPROGS)
 
 -include *.d
 
@@ -209,7 +210,7 @@ clean:
 
 # make a printout
 FILES = $(shell grep -v '^\#' runoff.list)
-PRINT = runoff.list runoff.spec README toc.hdr toc.ftr $(FILES)
+PRINT = runoff.list runoff.spec readme.md toc.hdr toc.ftr $(FILES)
 
 xv6.pdf: $(PRINT)
 	./runoff
@@ -265,9 +266,9 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
-	ln.c ls.c pbstest.c test.c ps.c pbs.c mkdir.c rm.c stressfs.c usertests.c wc.c time.c fcfs.c set_priority.c zombie.c\
+	ln.c ls.c roundtest.c pinfo.c test.c ps.c pbs.c mkdir.c rm.c stressfs.c usertests.c wc.c time.c fcfs.c set_priority.c zombie.c\
 	printf.c umalloc.c\
-	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
+	readme.md dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
 
 dist:

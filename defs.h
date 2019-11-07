@@ -8,6 +8,7 @@ struct rtcdate;
 struct spinlock;
 struct sleeplock;
 struct stat;
+struct proc_stat;
 struct superblock;
 
 // bio.c
@@ -121,6 +122,7 @@ int             wait(void);
 int             waitx(int *,int *);
 int             cps(void);
 int             set_priority(int pid, int priority);
+int             getpinfo(int pid,struct proc_stat*);
 void            wakeup(void*);
 void            yield(void);
 
